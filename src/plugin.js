@@ -30,12 +30,13 @@
 })(function ($) {
     'use strict';
 
+    const mentionIds = [];
+
     var AutoComplete = function (ed, options) {
         this.editor = ed;
 
         this.beginId = tinymce.DOM.uniqueId();
         this.endId = tinymce.DOM.uniqueId();
-        this.mentionIds = [];
 
         this.options = $.extend({}, {
             source: [],
@@ -326,6 +327,7 @@
             this.editor.focus();
             var selection = this.editor.dom.select('span#autocomplete')[0];
             this.editor.dom.remove(selection);
+            mentionIds.push(item.id)
             this.editor.execCommand('mceInsertContent', false, this.insert(item));
         },
 
@@ -407,8 +409,15 @@
                 switch (e.which || e.keyCode) {
                     //LEFT ARROW
                     case 37:
-                        let selection = tinymce.activeEditor.selection.getRng();
-                        debugger;
+                        if (mentionIds.length > 0) {
+                            const selection = tinymce.activeEditor.selection.getRng().startContainer.parentNode;
+                            mentionIds.forEach(id => {
+                                if (selection.attributes[`data-id-${id}`]) {
+                                    tinymce.activeEditor.selection.setCursorLocation(selection.previousSibling)
+                                    return true;
+                                }
+                            })
+                        }
                         // Get current selection?
                         // Loop through mention ids, find the selection range for each one
                         // Determine if overlap
@@ -416,6 +425,16 @@
                         break;
                     //RIGHT ARROW
                     case 39:
+                        if (mentionIds.length > 0) {
+                            const sel1 = tinymce.activeEditor.selection.getRng()
+                            const selection = sel1.endContainer.parentNode;
+                            mentionIds.forEach(id => {
+                                if (selection.attributes[`data-id-${id}`]) {
+                                    tinymce.activeEditor.selection.setCursorLocation(selection.nextSibling)
+                                    return true;
+                                }
+                            })
+                        }
                         break;
                     }
             });
