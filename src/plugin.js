@@ -60,8 +60,6 @@
         this.renderInput();
 
         this.bindEvents();
-
-        this.addAnchors();
     };
 
     AutoComplete.prototype = {
@@ -81,8 +79,8 @@
         },
 
         bindEvents: function () {
-            this.editor.on('keyup', this.rteKeyUp.bind(this));
-            this.editor.on('keydown', this.rteKeyDown.bind(this), true);
+            this.editor.on('keyup', this.editorKeyUpProxy = $.proxy(this.rteKeyUp, this));
+            this.editor.on('keydown', this.editorKeyDownProxy = $.proxy(this.rteKeyDown, this), true);
             this.editor.on('click', this.editorClickProxy = $.proxy(this.rteClicked, this));
 
             $('body').on('click', this.bodyClickProxy = $.proxy(this.rteLostFocus, this));
@@ -91,20 +89,13 @@
         },
 
         unbindEvents: function () {
-            this.editor.off('keyup', this.rteKeyUp);
-            this.editor.off('keydown', this.rteKeyDown);
+            this.editor.off('keyup', this.editorKeyUpProxy);
+            this.editor.off('keydown', this.editorKeyDownProxy);
             this.editor.off('click', this.editorClickProxy);
 
             $('body').off('click', this.bodyClickProxy);
 
             $(this.editor.getWin()).off('scroll', this.rteScroll);
-        },
-
-        addAnchors: function () {
-            const ed = this.editor
-            ed.dom.add(ed.getBody(), 'span', {'id': this.endId}, '');
-            ed.selection.setCursorLocation(ed.getBody().children[0], 0);
-            ed.insertContent(`<span id="${this.beginId}"></span>`);
         },
 
         rteKeyUp: function (e) {
@@ -400,43 +391,23 @@
             function prevCharIsSpace() {
                 var start = ed.selection.getRng(true).startOffset,
                       text = ed.selection.getRng(true).startContainer.data || '',
-                      charachter = text.substr(start > 0 ? start - 1 : 0, 1);
+                      character = text.substr(start > 0 ? start - 1 : 0, 1);
 
-                return (!!$.trim(charachter).length) ? false : true;
+                return (!!$.trim(character).length) ? false : true;
             }
 
             ed.on('keydown', function (e) {
                 switch (e.which || e.keyCode) {
-                    //LEFT ARROW
-                    case 37:
-                        if (mentionIds.length > 0) {
-                            const selection = tinymce.activeEditor.selection.getRng().startContainer.parentNode;
-                            mentionIds.forEach(id => {
-                                if (selection.attributes[`data-id-${id}`]) {
-                                    tinymce.activeEditor.selection.setCursorLocation(selection.previousSibling)
-                                    return true;
-                                }
-                            })
-                        }
-                        // Get current selection?
-                        // Loop through mention ids, find the selection range for each one
-                        // Determine if overlap
-                        // Jump selection/caret if so
+                    case 8:
+                        const selection = tinymce.activeEditor.selection.getRng().startContainer.parentNode;
+                        mentionIds.some(id => {
+                            if (selection.attributes[`data-id-${id}`]) {
+                                selection.remove()
+                                return true;
+                            }
+                        });
                         break;
-                    //RIGHT ARROW
-                    case 39:
-                        if (mentionIds.length > 0) {
-                            const sel1 = tinymce.activeEditor.selection.getRng()
-                            const selection = sel1.endContainer.parentNode;
-                            mentionIds.forEach(id => {
-                                if (selection.attributes[`data-id-${id}`]) {
-                                    tinymce.activeEditor.selection.setCursorLocation(selection.nextSibling)
-                                    return true;
-                                }
-                            })
-                        }
-                        break;
-                    }
+                }
             });
 
             ed.on('keypress', function (e) {
@@ -447,6 +418,16 @@
                         // Clone options object and set the used delimiter.
                         autoComplete = new AutoComplete(ed, $.extend({}, autoCompleteData, { delimiter: autoCompleteData.delimiter[delimiterIndex] }));
                     }
+                } else if (mentionIds.length > 0) {
+                    const selection = tinymce.activeEditor.selection.getRng().startContainer.parentNode;
+                    mentionIds.some(id => {
+                        if (selection.attributes[`data-id-${id}`]) {
+                            selection.remove()
+                            // Should probably add some logic here to grab the text content of the removed node and reinsert it.
+                            // Should also *try* to see if current selection is at *beginning* of mention, and in that case try to insert it before
+                            return true;
+                        }
+                    })
                 }
             });
         },
