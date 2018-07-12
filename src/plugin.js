@@ -377,20 +377,6 @@
 
     };
 
-    const insertToPreTag = (e, id) => {
-        const startNode = tinymce.activeEditor.dom.select('span#pre-' + id);
-        tinymce.activeEditor.selection.select(startNode[0]);
-        tinymce.activeEditor.selection.innerHTML += e.key;
-        e.preventDefault();
-    }
-
-    const insertToPostTag = (e, id) => {
-        const startNode = tinymce.activeEditor.dom.select('span#post-' + id);
-        tinymce.activeEditor.selection.select(startNode[0]);
-        tinymce.activeEditor.selection.innerHTML += e.key;
-        e.preventDefault();
-    }
-
     tinymce.create('tinymce.plugins.SynapMention', {
 
         init: function (ed) {
@@ -437,37 +423,26 @@
                     const isMention = mentionIds.some(id => start.attributes && start.attributes[`data-id-${id}`])
                     
                     if (isMention) {
-                        const pTag = start.parentNode
-                        const range = tinymce.activeEditor.selection.getRng()
-                        if(range.startOffset == 0 && pTag.childNodes[0] == start) {
-                            pTag.innerHTML = `&nbsp;${pTag.innerHTML}`
-                            tinymce.activeEditor.selection.setCursorLocation(pTag.childNodes[0])
+                        const pTag = start.parentNode;
+                        let startNodeIndex = 0;
+                        for (let i = 0; i < pTag.childNodes.length; i++) {
+                            if (pTag.childNodes[i] === start) {
+                                startNodeIndex = i;
+                                break;
+                            }
+                        }
+
+                        const range = tinymce.activeEditor.selection.getRng();
+                        if (range.startOffset == 0 && pTag.childNodes[startNodeIndex] == start) {
+                            pTag.innerHTML = `&nbsp;${pTag.innerHTML}`;
+                            tinymce.activeEditor.selection.setCursorLocation(pTag.childNodes[startNodeIndex]);
+                        } else if (range.endOffset == start.innerHTML.length && pTag.childNodes[startNodeIndex] == start) {
+                            pTag.innerHTML = `${pTag.innerHTML}&nbsp;`;
+                            tinymce.activeEditor.selection.setCursorLocation(pTag.childNodes[startNodeIndex + 1], 1);
                         } else {
                             e.preventDefault();
                         }
                     }
-                    
-
-
-
-
-                    // const range = tinymce.activeEditor.selection.getRng();
-                    // const selection = tinymce.activeEditor.selection.getSel();
-                    // const end = tinymce.activeEditor.selection.getEnd();
-                    // const range = tinymce.activeEditor.selection.getRng();
-                    // const selection = range.startContainer.attributes ? range.startContainer : range.startContainer.parentNode;
-                        // else if (start.attributes && start.attributes.id && start.attributes.id.nodeValue === `pre-${id}`) {
-                        //     const startNode = tinymce.activeEditor.dom.select('span#pre-' + id);
-                        //     startNode[0].innerHTML += e.key;
-                        //     tinymce.activeEditor.selection.setCursorLocation(startNode[0], 1);
-                        //     e.preventDefault();
-                        // } else if (end.attributes && end.attributes.id && end.attributes.id.nodeValue === `post-${id}`) {
-                        //     const startNode = tinymce.activeEditor.dom.select('span#post-' + id);
-                        //     // tinymce.activeEditor.selection.select(startNode[0]);
-                        //     tinymce.activeEditor.selection.setCursorLocation(startNode[0]);
-                        //     end.innerHTML += e.key;
-                        //     e.preventDefault();
-                        // }
                 }
             });
         },
