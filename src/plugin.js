@@ -206,7 +206,7 @@
         },
 
         matcher: function (item) {
-            return ~item[this.options.queryBy].toLowerCase().indexOf(this.query.toLowerCase());
+            return ~item[this.options.insertFrom].toLowerCase().indexOf(this.query.toLowerCase());
         },
 
         sorter: function (items) {
@@ -216,9 +216,9 @@
                 item;
 
             while ((item = items.shift()) !== undefined) {
-                if (!item[this.options.queryBy].toLowerCase().indexOf(this.query.toLowerCase())) {
+                if (!item[this.options.insertFrom].toLowerCase().indexOf(this.query.toLowerCase())) {
                     beginswith.push(item);
-                } else if (~item[this.options.queryBy].indexOf(this.query)) {
+                } else if (~item[this.options.insertFrom].indexOf(this.query)) {
                     caseSensitive.push(item);
                 } else {
                     caseInsensitive.push(item);
@@ -286,7 +286,7 @@
 
         render: function (item, index) {
             return '<li>' +
-                        '<a href="javascript:;"><span>' + item[this.options.queryBy] + '</span></a>' +
+                        '<a href="javascript:;"><span>' + item[this.options.insertFrom] + '</span></a>' +
                     '</li>';
         },
 
