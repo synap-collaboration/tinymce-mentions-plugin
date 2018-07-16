@@ -1,0 +1,18 @@
+{
+  "name": "tinymce-mentions-plugin",
+  "version": "1.0.0",
+  "description": "Mention plugin for tinyMCE",
+  "main": "src/plugin.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/synap-collaboration/tinymce-mentions-plugin.git"
+  },
+  "author": "Jesse Cooper",
+  "bugs": {
+    "url": "https://github.com/synap-collaboration/tinymce-mentions-plugin/issues"
+  },
+  "homepage": "https://github.com/synap-collaboration/tinymce-mentions-plugin#readme"
+}
