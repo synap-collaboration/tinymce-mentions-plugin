@@ -85,6 +85,15 @@
 
             $('body').on('click', this.bodyClickProxy = $.proxy(this.rteLostFocus, this));
 
+            $(document).on('mouseenter', "li.mentions-menu-suggestion", (e) => {
+                if (this.$dropdown !== undefined) {
+                    this.$dropdown.find('li.mentions-menu-suggestion.active').removeClass('active');
+                }
+                if (e.target.nodeName === 'LI'){
+                    e.target.classList.add('active');
+                }
+            });
+
             $(this.editor.getWin()).on('scroll', this.rteScroll = $.proxy(function () { this.cleanUp(true); }, this));
         },
 
@@ -261,9 +270,8 @@
             items = items.slice(0, this.options.items);
 
             $.each(items, function (i, item) {
-                var $element = $(_this.render(item, i));
-
-                $element.html($element.html().replace($element.text(), _this.highlighter($element.text())));
+                const $element = $(_this.render(item, i));
+                // $element.html($element.html().replace($element.text(), _this.highlighter($element.text())));
 
                 $.each(items[i], function (key, val) {
                     $element.attr('data-' + key, val);
