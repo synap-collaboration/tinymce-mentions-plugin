@@ -89,6 +89,7 @@
                 if (this.$dropdown !== undefined) {
                     this.$dropdown.find('li.mentions-menu-suggestion.active').removeClass('active');
                 }
+                // Sometimes there's weird behavior where the innerHTML of the li element is selected, hence this check
                 if (e.target.nodeName === 'LI'){
                     e.target.classList.add('active');
                 }
