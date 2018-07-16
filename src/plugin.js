@@ -52,7 +52,6 @@
         this.renderDropdown = this.options.renderDropdown || this.renderDropdown;
         this.render = this.options.render || this.render;
         this.insert = this.options.insert || this.insert;
-        this.highlighter = this.options.highlighter || this.highlighter;
 
         this.query = '';
         this.hasFocus = true;
@@ -238,12 +237,6 @@
             return beginswith.concat(caseSensitive, caseInsensitive);
         },
 
-        highlighter: function (text) {
-            return text.replace(new RegExp('(' + this.query.replace(/([.?*+^$[\]\\(){}|-])/g, '\\$1') + ')', 'ig'), function ($1, match) {
-                return '<strong>' + match + '</strong>';
-            });
-        },
-
         show: function () {
             var offset = this.editor.inline ? this.offsetInline() : this.offset();
 
@@ -272,7 +265,6 @@
 
             $.each(items, function (i, item) {
                 const $element = $(_this.render(item, i));
-                // $element.html($element.html().replace($element.text(), _this.highlighter($element.text())));
 
                 $.each(items[i], function (key, val) {
                     $element.attr('data-' + key, val);
@@ -287,6 +279,8 @@
                 this.$dropdown.hide();
                 this.$dropdown.find('li').removeClass('active');
             }
+
+            this.highlightNextResult();
         },
 
         renderDropdown: function () {
