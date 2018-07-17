@@ -4,6 +4,7 @@
   "description": "Mention plugin for tinyMCE",
   "main": "src/plugin.js",
   "scripts": {
+    "build": "babel ./src/plugin.js --out-file ./dist/plugin.min.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -14,5 +15,9 @@
   "bugs": {
     "url": "https://github.com/synap-collaboration/tinymce-mentions-plugin/issues"
   },
-  "homepage": "https://github.com/synap-collaboration/tinymce-mentions-plugin#readme"
+  "homepage": "https://github.com/synap-collaboration/tinymce-mentions-plugin#readme",
+  "devDependencies": {
+    "babel-cli": "^6.26.0",
+    "babel-preset-minify": "^0.4.3"
+  }
 }
