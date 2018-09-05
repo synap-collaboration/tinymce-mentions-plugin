@@ -1,6 +1,6 @@
 {
   "name": "tinymce-mentions-plugin",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Mention plugin for tinyMCE",
   "main": "src/plugin.js",
   "scripts": {

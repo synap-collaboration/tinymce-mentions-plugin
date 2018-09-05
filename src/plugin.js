@@ -59,6 +59,7 @@
         this.renderInput();
 
         this.bindEvents();
+        this.lookup();
     };
 
     AutoComplete.prototype = {
@@ -184,6 +185,7 @@
         },
 
         rteClicked: function (e) {
+            console.log('rteClicked');
             var $target = $(e.target);
 
             if (this.hasFocus && $target.parent().attr('id') !== 'autocomplete-searchtext') {
@@ -192,6 +194,7 @@
         },
 
         rteLostFocus: function () {
+            console.log('rteLostFocus');
             if (this.hasFocus) {
                 this.cleanUp(true);
             }
@@ -330,6 +333,7 @@
         },
 
         cleanUp: function (rollback) {
+            console.log('cleanUp');
             this.unbindEvents();
             this.hasFocus = false;
 
@@ -380,6 +384,54 @@
 
     };
 
+    function prevCharIsSpace(ed) {
+        var start = ed.selection.getRng(true).startOffset,
+              text = ed.selection.getRng(true).startContainer.data || '',
+              character = text.substr(start > 0 ? start - 1 : 0, 1);
+
+        return (!!$.trim(character).length) ? false : true;
+    }
+
+    function handleKeyPress(e, input, ed, autoComplete, autoCompleteData, clicked) {
+        var delimiterIndex = $.inArray(input, autoCompleteData.delimiter);
+        if (delimiterIndex > -1 && prevCharIsSpace(ed)) {
+            if (autoComplete === undefined || (autoComplete.hasFocus !== undefined && !autoComplete.hasFocus)) {
+                e.preventDefault();
+                if (clicked) {
+                    e.stopPropagation();
+                }
+
+                // Clone options object and set the used delimiter.
+                autoComplete = new AutoComplete(ed, $.extend({}, autoCompleteData, { delimiter: autoCompleteData.delimiter[delimiterIndex] }));
+            }
+        } else if (mentionIds.length > 0) {
+            const start = tinymce.activeEditor.selection.getStart();
+            const isMention = mentionIds.some(id => start.attributes && start.attributes[`data-id-${id}`])
+            
+            if (isMention) {
+                const pTag = start.parentNode;
+                let startNodeIndex = 0;
+                for (let i = 0; i < pTag.childNodes.length; i++) {
+                    if (pTag.childNodes[i] === start) {
+                        startNodeIndex = i;
+                        break;
+                    }
+                }
+
+                const range = tinymce.activeEditor.selection.getRng();
+                if (range.startOffset == 0 && pTag.childNodes[startNodeIndex] == start) {
+                    pTag.innerHTML = `&nbsp;${pTag.innerHTML}`;
+                    tinymce.activeEditor.selection.setCursorLocation(pTag.childNodes[startNodeIndex]);
+                } else if (range.endOffset == start.innerHTML.length && pTag.childNodes[startNodeIndex] == start) {
+                    pTag.innerHTML = `${pTag.innerHTML}&nbsp;`;
+                    tinymce.activeEditor.selection.setCursorLocation(pTag.childNodes[startNodeIndex + 1], 1);
+                } else {
+                    e.preventDefault();
+                }
+            }
+        }
+    };
+
     tinymce.create('tinymce.plugins.SynapMention', {
 
         init: function (ed) {
@@ -390,14 +442,6 @@
             // If the delimiter is undefined set default value to ['@'].
             // If the delimiter is a string value convert it to an array. (backwards compatibility)
             autoCompleteData.delimiter = (autoCompleteData.delimiter !== undefined) ? !$.isArray(autoCompleteData.delimiter) ? [autoCompleteData.delimiter] : autoCompleteData.delimiter : ['@'];
-
-            function prevCharIsSpace() {
-                var start = ed.selection.getRng(true).startOffset,
-                      text = ed.selection.getRng(true).startContainer.data || '',
-                      character = text.substr(start > 0 ? start - 1 : 0, 1);
-
-                return (!!$.trim(character).length) ? false : true;
-            }
 
             ed.on('keydown', function (e) {
                 switch (e.which || e.keyCode) {
@@ -414,39 +458,13 @@
             });
 
             ed.on('keypress', function (e) {
-                var delimiterIndex = $.inArray(String.fromCharCode(e.which || e.keyCode), autoCompleteData.delimiter);
-                if (delimiterIndex > -1 && prevCharIsSpace()) {
-                    if (autoComplete === undefined || (autoComplete.hasFocus !== undefined && !autoComplete.hasFocus)) {
-                        e.preventDefault();
-                        // Clone options object and set the used delimiter.
-                        autoComplete = new AutoComplete(ed, $.extend({}, autoCompleteData, { delimiter: autoCompleteData.delimiter[delimiterIndex] }));
-                    }
-                } else if (mentionIds.length > 0) {
-                    const start = tinymce.activeEditor.selection.getStart();
-                    const isMention = mentionIds.some(id => start.attributes && start.attributes[`data-id-${id}`])
-                    
-                    if (isMention) {
-                        const pTag = start.parentNode;
-                        let startNodeIndex = 0;
-                        for (let i = 0; i < pTag.childNodes.length; i++) {
-                            if (pTag.childNodes[i] === start) {
-                                startNodeIndex = i;
-                                break;
-                            }
-                        }
+                handleKeyPress(e, String.fromCharCode(e.which || e.keyCode), ed, autoComplete, autoCompleteData);
+            });
 
-                        const range = tinymce.activeEditor.selection.getRng();
-                        if (range.startOffset == 0 && pTag.childNodes[startNodeIndex] == start) {
-                            pTag.innerHTML = `&nbsp;${pTag.innerHTML}`;
-                            tinymce.activeEditor.selection.setCursorLocation(pTag.childNodes[startNodeIndex]);
-                        } else if (range.endOffset == start.innerHTML.length && pTag.childNodes[startNodeIndex] == start) {
-                            pTag.innerHTML = `${pTag.innerHTML}&nbsp;`;
-                            tinymce.activeEditor.selection.setCursorLocation(pTag.childNodes[startNodeIndex + 1], 1);
-                        } else {
-                            e.preventDefault();
-                        }
-                    }
-                }
+            ed.addButton('mention-button', {
+                title: '@',
+                text: '@',
+                onClick: (e) => { handleKeyPress(e, '@', ed, autoComplete, autoCompleteData, true) }
             });
         },
 
