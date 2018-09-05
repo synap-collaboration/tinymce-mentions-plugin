@@ -185,7 +185,6 @@
         },
 
         rteClicked: function (e) {
-            console.log('rteClicked');
             var $target = $(e.target);
 
             if (this.hasFocus && $target.parent().attr('id') !== 'autocomplete-searchtext') {
@@ -194,7 +193,6 @@
         },
 
         rteLostFocus: function () {
-            console.log('rteLostFocus');
             if (this.hasFocus) {
                 this.cleanUp(true);
             }
@@ -333,7 +331,6 @@
         },
 
         cleanUp: function (rollback) {
-            console.log('cleanUp');
             this.unbindEvents();
             this.hasFocus = false;
 
